@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: application
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      imagePullSecrets:
+      - name: mydockerhub-secret
+      containers:
+      - name: app-container
+        image: anildoc143/blood_bank:app_image 
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+          limits:
+            cpu: 300m
+            memory: 500Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5

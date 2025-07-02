@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dbstatefulset
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+      - name: db-container
+        image: anildoc143/blood_bank:db_image
+        ports:
+        - containerPort: 3306
+          name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dbsecret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: dbsecret
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dbsecret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: dbsecret
+              key: MYSQL_DATABASE
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "356Mi"
+          limits:
+            cpu: "400m"
+            memory: "712Mi"
+      imagePullSecrets:
+      - name: mydockerhub-secret
