@@ -44,22 +44,20 @@ spec:
               key: MYSQL_DATABASE
         readinessProbe:
           exec:
-            command:
-            - mysqladmin
-            - ping
-            - -uroot
-            - -p$(MYSQL_ROOT_PASSWORD)
+          command:
+            - /bin/sh
+            - -c
+            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 3  
+          failureThreshold: 3
         livenessProbe:
           exec:
             command:
-            - mysqladmin
-            - ping
-            - -uroot
-            - -p$(MYSQL_ROOT_PASSWORD)
+            - /bin/sh
+            - -c
+            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
