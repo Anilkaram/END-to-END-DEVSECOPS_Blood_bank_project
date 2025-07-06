@@ -1,10 +1,10 @@
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: dbstatefulset
+  name: db-statefulset  
   namespace: dev
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app: db
@@ -16,11 +16,11 @@ spec:
       securityContext:
         fsGroup: 999
       containers:
-      - name: db-container
+      - name: db-container  
         image: anildoc143/blood_bank:db_image
         ports:
         - containerPort: 3306
-          name: mysql
+          name: mysql  
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -28,7 +28,7 @@ spec:
               name: dbsecret
               key: MYSQL_ROOT_PASSWORD
         - name: MYSQL_USER
-          valueFrom:
+          valueFrom: 
             secretKeyRef:
               name: dbsecret
               key: MYSQL_USER
@@ -45,29 +45,43 @@ spec:
         readinessProbe:
           exec:
             command:
-            - /bin/sh
-            - -c
-            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
+            - mysqladmin
+            - ping
+            - -uroot
+            - -p$(MYSQL_ROOT_PASSWORD)
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 3
+          failureThreshold: 3  
         livenessProbe:
           exec:
             command:
-            - /bin/sh
-            - -c
-            - "mysqladmin ping -uroot -p${MYSQL_ROOT_PASSWORD}"
+            - mysqladmin
+            - ping
+            - -uroot
+            - -p$(MYSQL_ROOT_PASSWORD)
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 3
+          failureThreshold: 3  
+        volumeMounts:
+        - name: db-data  
+          mountPath: /var/lib/mysql
         resources:
           requests:
-            cpu: "200m"
-            memory: "356Mi"
+            cpu: "200m" 
+            memory: "356Mi"  
           limits:
-            cpu: "400m"
-            memory: "712Mi"
+            cpu: "400m" 
+            memory: "712Mi"  
       imagePullSecrets:
       - name: mydockerhub-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: db-data
+    spec:
+      storageClassName: "gp2"
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 3Gi
